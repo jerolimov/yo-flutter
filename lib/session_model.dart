@@ -57,7 +57,11 @@ class SessionModel extends Model {
   }
 
   Future<void> _autoLogin() async {
-    _user = await FirebaseAuth.instance.currentUser();
+    try {
+      _user = await FirebaseAuth.instance.currentUser();
+    } catch (e) {
+      print("Catch currentUser failed error: " + e.toString());
+    }
     _initLoginDone = true;
     await _registerPushNotificationToken();
     notifyListeners();
@@ -65,11 +69,12 @@ class SessionModel extends Model {
 
   Future<void> _registerPushNotificationToken() async {
     final fmToken = await FirebaseMessaging().getToken();
-    Firestore.instance
-        .collection("tokens")
-        .document(_user.uid)
-        .setData({'token': fmToken});
-
+    if (fmToken != null && _user != null && _user.uid != null) {
+      Firestore.instance
+          .collection("tokens")
+          .document(_user.uid)
+          .setData({'token': fmToken});
+    }
   }
 
   Future<void> _saveToDatabase(FirebaseUser user) {

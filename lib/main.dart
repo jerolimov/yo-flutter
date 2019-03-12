@@ -107,7 +107,6 @@ class FriendListPage extends StatelessWidget {
                 title: Text(friendsModel.friends[index].name),
                 onTap: () {
                   friendsModel.sendYo(friendsModel.friends[index]);
-                  print("xxx 2");
                 },
               ),
             );
