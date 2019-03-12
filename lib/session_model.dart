@@ -7,6 +7,7 @@ import 'package:flutter/widgets.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:scoped_model/scoped_model.dart';
 import 'package:yo/person.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 class SessionModel extends Model {
   /// Easy access to this model using [ScopedModel.of]
@@ -44,6 +45,7 @@ class SessionModel extends Model {
     await _saveToDatabase(user);
     print("Saved to DB");
     _user = await FirebaseAuth.instance.currentUser();
+    await _registerPushNotificationToken();
     notifyListeners();
   }
 
@@ -57,7 +59,17 @@ class SessionModel extends Model {
   Future<void> _autoLogin() async {
     _user = await FirebaseAuth.instance.currentUser();
     _initLoginDone = true;
+    await _registerPushNotificationToken();
     notifyListeners();
+  }
+
+  Future<void> _registerPushNotificationToken() async {
+    final fmToken = await FirebaseMessaging().getToken();
+    Firestore.instance
+        .collection("tokens")
+        .document(_user.uid)
+        .setData({'token': fmToken});
+
   }
 
   Future<void> _saveToDatabase(FirebaseUser user) {
